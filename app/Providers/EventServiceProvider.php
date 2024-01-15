@@ -18,6 +18,10 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+        //MessageListener
+        \MeilleursBiens\LaravelSlackEvents\Events\Message::class => [
+            \App\Listeners\MessageListener::class,
+        ],
     ];
 
     /**

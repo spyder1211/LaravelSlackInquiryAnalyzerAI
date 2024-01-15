@@ -160,6 +160,7 @@ return [
          * Package Service Providers...
          */
 
+         \MeilleursBiens\LaravelSlackEvents\SlackEventsServiceProvider::class,
         /*
          * Application Service Providers...
          */
