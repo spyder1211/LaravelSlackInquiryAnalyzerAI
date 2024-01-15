@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Util\AI;
 use \MeilleursBiens\LaravelSlackEvents\Events\Message;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use \MeilleursBiens\LaravelSlackEvents\Facades\Slack;
@@ -36,13 +37,15 @@ class MessageListener implements ShouldQueue
             // メッセージ送信元のユーザーがbotの場合は処理を終了
             return;
         }
-        // openai apiを叩き
 
+        // メッセージのテキストをOpenAIに投げて結果を取得
+        $openai = new AI();
+        $response = $openai->analyze_inquiry($text);
 
         $yourSlackToken = config('slack_events.slack_auth_token');
         $client = ClientFactory::create($yourSlackToken);
         $client->chatPostMessage([
-            'text' => $text,
+            'text' => $response,
             'channel' => $channel,
             'thread_ts' => $ts,
         ]);
