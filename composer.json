@@ -13,6 +13,7 @@
         "laravel/tinker": "^2.8",
         "meilleursbiens/laravel-slack-events": "^1.0",
         "nyholm/psr7": "^1.8",
+        "openai-php/client": "^0.8.1",
         "symfony/http-client": "^6.4"
     },
     "require-dev": {
