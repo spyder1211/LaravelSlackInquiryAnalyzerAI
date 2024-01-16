@@ -2,13 +2,16 @@
 //OpenAIのAPIを使うためのクラス
 namespace App\Util;
 
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Psr7\Request;
 use OpenAI;
 
 class AI
 {
-    public function analyze_inquiry($content){
+    public function analyze_inquiry($content)
+    {
+        if (!defined('CURL_SSLVERSION_TLSv1_2')) {
+            define('CURL_SSLVERSION_TLSv1_2', 6);
+        }
+
         $client = OpenAI::client(config('openai.OPENAI_KEY'));
 
         // 以下のプロンプトを指定する
@@ -34,8 +37,6 @@ class AI
         $prompt .= "{問い合わせ企業}\n\n";
         $prompt .= "【問い合わせ内容】\n";
         $prompt .= "{問い合わせ内容}\n\n";
-
-
 
         \Log::info($prompt);
         // $prompt内の空白、改行を削除する
