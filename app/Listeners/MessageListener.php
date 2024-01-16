@@ -25,13 +25,13 @@ class MessageListener implements ShouldQueue
     public function handle(MessageSlack $messageSlack)
     {
         \Log::info('Listener, message text is: ' . $messageSlack->data['text']);
-        $user = $messageSlack->data['user'];
+        $user = $messageSlack->data['bot_id'];
         if ($user != config('slack_events.bot_user_id')) {
             // メッセージ送信元のユーザーがbot以外の場合は処理を終了
             return response()->json(['ok' => true], 200);
         } else {
             // client_msg_idをDB存在するかチェックする。
-            $client_msg_id = $messageSlack->data['client_msg_id'];
+            $client_msg_id = $messageSlack->data['ts'];
             $message = Message::where('client_msg_id', $client_msg_id)->first();
             if ($message) {
                 // すでにDBに存在する場合は200 OKを返して処理を終了
