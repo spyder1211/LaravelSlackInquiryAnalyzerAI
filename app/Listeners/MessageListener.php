@@ -2,52 +2,49 @@
 
 namespace App\Listeners;
 
-use App\Util\AI;
-use \MeilleursBiens\LaravelSlackEvents\Events\Message;
+use App\Jobs\AnalyzeInquiry;
+use App\Models\Message;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use \MeilleursBiens\LaravelSlackEvents\Facades\Slack;
-use \JoliCode\Slack\ClientFactory;
+use Illuminate\Queue\InteractsWithQueue;
+use \MeilleursBiens\LaravelSlackEvents\Events\Message as MessageSlack;
 
 class MessageListener implements ShouldQueue
 {
+    use InteractsWithQueue;
     /**
      * Create the event listener.
      */
     public function __construct()
     {
-        //
+
     }
 
     /**
      * Handle the event.
      */
-    public function handle(Message $message)
+    public function handle(MessageSlack $messageSlack)
     {
-        \Log::info('New message posted, message text is: ' . $message->data['text']);
-        // メッセージ送信元のスレッドを取得
-        $channel = $message->data['channel'];
-        // メッセージ送信元のユーザーを取得
-        $user = $message->data['user'];
-        // メッセージのテキストを取得
-        $text = $message->data['text'];
-        // tsを取得
-        $ts = $message->data['ts'];
-
-        if($user == config('slack_events.bot_user_id')){
-            // メッセージ送信元のユーザーがbotの場合は処理を終了
-            return;
+        \Log::info('Listener, message text is: ' . $messageSlack->data['text']);
+        $user = $messageSlack->data['user'];
+        if ($user != config('slack_events.bot_user_id')) {
+            // メッセージ送信元のユーザーがbot以外の場合は処理を終了
+            return response()->json(['ok' => true], 200);
+        } else {
+            // client_msg_idをDB存在するかチェックする。
+            $client_msg_id = $messageSlack->data['client_msg_id'];
+            $message = Message::where('client_msg_id', $client_msg_id)->first();
+            if ($message) {
+                // すでにDBに存在する場合は200 OKを返して処理を終了
+                return response()->json(['ok' => true], 200);
+            } else {
+                // DBに存在しない場合はDBに保存する
+                $message = new Message();
+                $message->client_msg_id = $client_msg_id;
+                $message->save();
+                $data = $messageSlack->data;
+                AnalyzeInquiry::dispatch($data);
+                return response()->json(['ok' => true], 200);
+            }
         }
-
-        // メッセージのテキストをOpenAIに投げて結果を取得
-        $openai = new AI();
-        $response = $openai->analyze_inquiry($text);
-
-        $yourSlackToken = config('slack_events.slack_auth_token');
-        $client = ClientFactory::create($yourSlackToken);
-        $client->chatPostMessage([
-            'text' => $response,
-            'channel' => $channel,
-            'thread_ts' => $ts,
-        ]);
     }
 }
