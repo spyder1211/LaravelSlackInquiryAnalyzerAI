@@ -57,7 +57,7 @@ class AI
         // return $result['choices'][0]['text'];
 
         $result = $client->chat()->create([
-            'model' => 'gpt-4',
+            'model' => 'gpt-4.1-mini',
             'messages' => [
                 [
                     'role' => 'assistant',
